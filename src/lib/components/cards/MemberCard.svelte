@@ -26,7 +26,7 @@
     onmouseleave={() => (isOverlayVisible = false)}
 >
     <img
-        src="https://assets.up-csi.org/website/images/people/{src}.webp"
+        src={src}
         alt={name}
         height="300px"
         loading="lazy"

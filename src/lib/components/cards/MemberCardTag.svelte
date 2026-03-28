@@ -26,7 +26,7 @@
     {#if socials}
         {#each Object.entries(socials) as [social, link] (social)}
             {@const { path, icon } = getSocialMedium(social)}
-            {@const href = path ? `${path}/${link}` : link}
+            {@const href = path === 'https://github.com' ? `${path}/${link}` : link}
             <a {href} target="_blank"
                 ><Icon
                     {icon}
