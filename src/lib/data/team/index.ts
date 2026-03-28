@@ -65,5 +65,5 @@ export async function getTeam() {
         return member
     });
     
-    return members
+    return members.sort((a, b) => a.name.localeCompare(b.name))
 }
