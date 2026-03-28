@@ -1,18 +1,32 @@
 import type { EnhancedImgAttributes } from '@sveltejs/enhanced-img';
 import { parse } from 'valibot';
-import { supabase } from "$lib/supabaseClient";
+import { supabase } from '$lib/supabaseClient';
 
 import { type Officer, Officer as OfficerSchema } from '$lib/models/officer';
 import { type Position, Position as PositionSchema } from '$lib/models/position';
 import type { Board } from '$lib/types/board';
 import type { BoardOfficer } from '$lib/types/board_officer';
 
+interface ExecRow {
+    term: string;
+    execs: {
+        id: number;
+        last_name: string;
+        nickname: string;
+        image_url: string;
+    };
+    positions: {
+        title: string;
+    };
+}
+
 export const pres_term = '2526A';
 
 async function getOfficers() {
     const { data, error } = await supabase
-        .from("executive_terms")
-        .select(`
+        .from('executive_terms')
+        .select(
+            `
             term,
             execs (
                 id,
@@ -23,38 +37,32 @@ async function getOfficers() {
             positions (
                 title
             )
-        `)
-    
-    console.log("RAW DATA:", data);
+        `,
+        )
+        .overrideTypes<ExecRow[]>();
 
-    if (error) {
-        console.error(error);
-        throw new Error("exec data fetching error");
-    }
+    if (error) throw new Error('exec data fetching error');
 
     const exec_map = new Map();
-    data.forEach(({term, execs, positions}) => {
+    data.forEach(({ term, execs, positions }) => {
         if (!execs || !positions) return;
 
-        const { id, last_name, nickname, image_url } = execs as any;
-        const { title } = positions as any;
+        const { id, last_name, nickname, image_url } = execs;
+        const { title } = positions;
 
-        if (!exec_map.has(id)) {
+        if (exec_map.has(id)) exec_map.get(id).pos.push(`${term}:${title}`);
+        else
             exec_map.set(id, {
                 name: {
                     last_name,
-                    nickname
+                    nickname,
                 },
                 img: image_url,
-                pos: [`${term}:${title}`]
+                pos: [`${term}:${title}`],
             });
-        } else {
-            exec_map.get(id).pos.push(`${term}:${title}`);
-        }
-    })
+    });
     const imports = Array.from(exec_map.values());
 
-    console.log("IMPORTS:", imports);
     const promises = Object.entries(imports).map(([_, asset]) => {
         const officer = parse(OfficerSchema, asset);
 
@@ -98,8 +106,7 @@ export async function getExec() {
                     const new_board: Board = { term, src: null, officers: [] };
                     boards[term] = new_board;
                 }
-                
-                console.log(`term ${term} was accessed`);
+
                 boards[term].officers.push(new_officer);
             }
         });

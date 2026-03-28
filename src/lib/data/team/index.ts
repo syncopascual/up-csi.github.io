@@ -1,7 +1,5 @@
-import { parse } from 'valibot';
-import { supabase } from "$lib/supabaseClient";
-
-import { type Member, Member as MemberSchema } from '$lib/models/member';
+import { supabase } from '$lib/supabaseClient';
+import { Member } from '$lib/models/member';
 
 const committeeMap: Record<string, string> = {
     SERVICE: 'Service',
@@ -14,9 +12,7 @@ const committeeMap: Record<string, string> = {
 };
 
 export async function getTeam() {
-    const { data, error } = await supabase
-        .from("people")
-        .select(`
+    const { data, error } = await supabase.from('people').select(`
             last_name,
             nickname,
             image_url,
@@ -28,24 +24,17 @@ export async function getTeam() {
             website_url
     `);
 
-    if (error) {
-        console.error(error);
-        throw new Error("team data fetching error");
-    }
+    if (error) throw new Error('team data fetching error');
 
-    const members: Member[] = data.map((person) => {
+    const members: Member[] = data.map(person => {
         const comm = committeeMap[person.committee]!;
 
         // a quirk of the DB setup,
         // if the comm is set to Executive then thats the president,
         // otherwise if the person is_exec then they have two comms,
         // everone else has only one comm
-        const committees =
-            comm === "Executive" || !person.is_exec
-                ? [comm]
-                : person.is_exec
-                ? [comm, "Executive"]
-                : [comm];
+        const committees = [comm];
+        if (person.is_exec && comm !== 'Executive') committees.push('Executive');
 
         const socials: Record<string, string> = {};
 
@@ -58,12 +47,12 @@ export async function getTeam() {
             name: `${person.nickname} ${person.last_name}`,
             img: person.image_url,
             committee: committees,
-            socials: socials,
-            src: person.image_url
-        }
+            socials,
+            src: person.image_url,
+        };
 
-        return member
+        return member;
     });
-    
-    return members.sort((a, b) => a.name.localeCompare(b.name))
+
+    return members.sort((a, b) => a.name.localeCompare(b.name));
 }

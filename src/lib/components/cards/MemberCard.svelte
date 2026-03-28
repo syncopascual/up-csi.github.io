@@ -26,7 +26,7 @@
     onmouseleave={() => (isOverlayVisible = false)}
 >
     <img
-        src={src}
+        {src}
         alt={name}
         height="300px"
         loading="lazy"
