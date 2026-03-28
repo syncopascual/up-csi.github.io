@@ -1,5 +1,6 @@
 import type { EnhancedImgAttributes } from '@sveltejs/enhanced-img';
 import { parse } from 'valibot';
+import { supabase } from "$lib/supabaseClient";
 
 import { type Officer, Officer as OfficerSchema } from '$lib/models/officer';
 import { type Position, Position as PositionSchema } from '$lib/models/position';
@@ -9,10 +10,53 @@ import type { BoardOfficer } from '$lib/types/board_officer';
 export const pres_term = '2526A';
 
 async function getOfficers() {
-    const imports = import.meta.glob<Officer>('./json/*.json');
+    const { data, error } = await supabase
+        .from("executive_terms")
+        .select(`
+            term,
+            execs (
+                id,
+                last_name,
+                nickname,
+                image_url
+            ),
+            positions (
+                title
+            )
+        `)
+    
+    console.log("RAW DATA:", data);
 
-    const promises = Object.entries(imports).map(async ([_, asset]) => {
-        const officer = parse(OfficerSchema, await asset());
+    if (error) {
+        console.error(error);
+        throw new Error("exec data fetching error");
+    }
+
+    const exec_map = new Map();
+    data.forEach(({term, execs, positions}) => {
+        if (!execs || !positions) return;
+
+        const { id, last_name, nickname, image_url } = execs as any;
+        const { title } = positions as any;
+
+        if (!exec_map.has(id)) {
+            exec_map.set(id, {
+                name: {
+                    last_name,
+                    nickname
+                },
+                img: image_url,
+                pos: [`${term}:${title}`]
+            });
+        } else {
+            exec_map.get(id).pos.push(`${term}:${title}`);
+        }
+    })
+    const imports = Array.from(exec_map.values());
+
+    console.log("IMPORTS:", imports);
+    const promises = Object.entries(imports).map(([_, asset]) => {
+        const officer = parse(OfficerSchema, asset);
 
         const src: string = officer.img;
 
@@ -34,7 +78,7 @@ async function getOfficers() {
         return parsed_officer;
     });
 
-    return await Promise.all(promises);
+    return promises;
 }
 
 export async function getExec() {
@@ -54,7 +98,8 @@ export async function getExec() {
                     const new_board: Board = { term, src: null, officers: [] };
                     boards[term] = new_board;
                 }
-
+                
+                console.log(`term ${term} was accessed`);
                 boards[term].officers.push(new_officer);
             }
         });
