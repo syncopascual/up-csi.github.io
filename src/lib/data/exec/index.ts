@@ -86,7 +86,7 @@ async function getOfficers() {
         return parsed_officer;
     });
 
-    return promises;
+    return promises.sort((a, b) => a.name.nickname.localeCompare(b.name.nickname));
 }
 
 export async function getExec() {
