@@ -1,7 +1,7 @@
 import type { Member } from '$lib/models/member';
 import { MemberCommittees } from '$lib/types/committees';
 
-import { getExec } from '$lib/data/exec';
+import { getExecBoards } from '$lib/data/exec';
 import { getTeam } from '$lib/data/team';
 
 export async function load() {
@@ -9,14 +9,14 @@ export async function load() {
 
     const filteredTeams: Record<string, Member[]> = {};
     Object.keys(MemberCommittees).forEach(filterComm => {
-        filteredTeams[filterComm] = team.filter(({ committee }) => {
+        filteredTeams[filterComm] = team.filter(({ committees }) => {
             let in_committee = false;
-            committee.forEach(comm => {
+            committees.forEach(comm => {
                 in_committee ||= comm === filterComm;
             });
             return in_committee;
         });
     });
 
-    return { team, filteredTeams, exec: await getExec() };
+    return { team, filteredTeams, execBoards: await getExecBoards() };
 }

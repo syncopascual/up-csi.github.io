@@ -7,9 +7,7 @@
     import TeamPanel from '$lib/components/panels/TeamPanel.svelte';
 
     const { data } = $props();
-    const { team, filteredTeams, exec } = $derived(data);
-
-    const terms = $derived(Object.keys(exec).sort().reverse());
+    const { team, filteredTeams, execBoards } = $derived(data);
 </script>
 
 <div class="py-6">
@@ -21,14 +19,11 @@
         Meet the previous executive boards
     </h1>
     <AccordionPanel>
-        {#each terms as term (term)}
+        {#each execBoards as { term, executives } (term)}
             {#if term !== pres_term}
-                {@const board = exec[term]}
-                {#if board}
-                    <Accordion title={term}>
-                        <ExecPanel {board} />
-                    </Accordion>
-                {/if}
+                <Accordion title={term}>
+                    <ExecPanel {executives} />
+                </Accordion>
             {/if}
         {/each}
     </AccordionPanel>
