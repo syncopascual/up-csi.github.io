@@ -53,8 +53,8 @@
     >
         {#if filteredTeam}
             {@const { color, foreground } = getCommitteeInfo(currentCommittee)}
-            {#each filteredTeam as member (member.name)}
-                <Card {member} socials={member.socials} {color} {foreground} />
+            {#each filteredTeam as { id, nickname, last_name, image_url, socials } (id)}
+                <Card {nickname} {last_name} {image_url} {socials} {color} {foreground} />
             {/each}
         {/if}
     </div>

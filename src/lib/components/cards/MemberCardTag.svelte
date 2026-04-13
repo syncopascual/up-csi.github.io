@@ -7,18 +7,18 @@
 
     interface Props {
         name: string;
-        title?: Position[];
+        titles?: Position[];
         socials?: Record<string, string>;
     }
 
-    const { name, title, socials }: Props = $props();
+    const { name, titles, socials }: Props = $props();
 </script>
 
 <div class="*:!m-0">
     <p class="text-md md:text-lg">{name}</p>
-    {#if title}
+    {#if titles}
         <p class="text-xs leading-tight">
-            {title.join(', ')}
+            {titles.join(', ')}
         </p>
     {/if}
 </div>

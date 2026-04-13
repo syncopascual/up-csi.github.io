@@ -1,20 +1,33 @@
 <script lang="ts">
     import { fade } from 'svelte/transition';
 
-    import type { BoardOfficer } from '$lib/types/board_officer';
     import type { Member } from '$lib/models/member';
+    import type { Executive } from '$lib/models/executive';
 
     import MemberCardTag from '$lib/components/cards/MemberCardTag.svelte';
 
     interface Props {
-        member: BoardOfficer | Member;
-        socials?: Record<string, string>;
+        nickname: Member['nickname'] | Executive['nickname'];
+        last_name: Member['last_name'] | Executive['last_name'];
+        image_url: Member['image_url'] | Executive['image_url'];
+        socials?: Member['socials'];
+        titles?: Executive['titles'];
         color: string;
         foreground: string;
     }
 
-    const { member, socials, color, foreground }: Props = $props();
-    const { name, src, title } = $derived(member);
+    const {
+        nickname,
+        last_name,
+        image_url,
+        socials,
+        titles,
+        color,
+        foreground
+    }: Props = $props();
+
+    const name = $derived(`${nickname} ${last_name}`);
+
     let isOverlayVisible = $state(false);
 </script>
 
@@ -26,7 +39,7 @@
     onmouseleave={() => (isOverlayVisible = false)}
 >
     <img
-        {src}
+        src={image_url}
         alt={name}
         height="300px"
         loading="lazy"
@@ -37,7 +50,7 @@
             class="bg-csi-black/70 text-csi-white absolute z-10 col-start-1 row-start-1 hidden h-full w-full flex-col justify-end gap-2 p-4 md:flex"
             transition:fade={{ duration: 75 }}
         >
-            <MemberCardTag {name} {title} {socials} />
+            <MemberCardTag {name} {titles} {socials} />
         </div>
     {:else}
         <div
@@ -51,6 +64,6 @@
     {/if}
 
     <div class="col-start-1 row-start-2 flex flex-col gap-2 md:hidden">
-        <MemberCardTag {name} {title} {socials} />
+        <MemberCardTag {name} {titles} {socials} />
     </div>
 </div>
