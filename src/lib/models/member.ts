@@ -1,17 +1,21 @@
-import { type InferOutput, array, object, optional, picklist, record, string } from 'valibot';
+import { type InferOutput, boolean, nullable, number, object, picklist, pipe, string, url } from 'valibot';
 
 import { MemberCommittees } from '$lib/types/committees';
-import { MemberSocialMedia } from '$lib/types/social_media';
-import { POSITIONS } from '$lib/models/position';
 
 export const Member = object({
-    name: string(),
-    img: string(),
-    title: optional(array(picklist(POSITIONS))),
-    committee: array(picklist(Object.keys(MemberCommittees))),
-    socials: optional(record(picklist(Object.keys(MemberSocialMedia)), string())),
+    id: number(),
+    last_name: string(),
+    nickname: string(),
+    image_url: pipe(string(), url("Invalid image URL")),
+    committee: picklist(Object.keys(MemberCommittees)),
+    is_exec: boolean(),
+    github_handle: nullable(string()),
+    linkedin_url: nullable(pipe(string(), url("Invalid LinkedIn URL"))),
+    instagram_url: nullable(pipe(string(), url("Invalid Instagram URL"))),
+    website_url: nullable(pipe(string(), url("Invalid Website URL")))
 });
 
-export interface Member extends InferOutput<typeof Member> {
-    src: string;
+export interface Member extends Pick<InferOutput<typeof Member>, 'id' | 'last_name' | 'nickname' | 'image_url'> {
+    committees: string[];
+    socials: Record<string, string>;
 }
