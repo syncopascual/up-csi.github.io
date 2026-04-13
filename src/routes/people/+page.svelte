@@ -19,7 +19,7 @@
         Meet the previous executive boards
     </h1>
     <AccordionPanel>
-        {#each execBoards as {term, executives} (term)}
+        {#each execBoards as { term, executives } (term)}
             {#if term !== pres_term}
                 <Accordion title={term}>
                     <ExecPanel {executives} />

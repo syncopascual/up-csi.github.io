@@ -16,15 +16,7 @@
         foreground: string;
     }
 
-    const {
-        nickname,
-        last_name,
-        image_url,
-        socials,
-        titles,
-        color,
-        foreground
-    }: Props = $props();
+    const { nickname, last_name, image_url, socials, titles, color, foreground }: Props = $props();
 
     const name = $derived(`${nickname} ${last_name}`);
 
