@@ -1,58 +1,53 @@
 import { supabase } from '$lib/supabaseClient';
 import { Member } from '$lib/models/member';
-
-const committeeMap: Record<string, string> = {
-    SERVICE: 'Service',
-    'M&I': 'Membership & Internals',
-    ENGG: 'Engineering',
-    BEX: 'Executive',
-    INNOV: 'Innovation',
-    EXTE: 'External Relations',
-    BnC: 'Branding & Creatives',
-};
+import { array, parse } from 'valibot';
 
 export async function getTeam() {
     const { data, error } = await supabase.from('people').select(`
-            last_name,
-            nickname,
-            image_url,
-            committee,
-            is_exec,
-            github_handle,
-            linkedin_url,
-            instagram_url,
-            website_url
+        id,
+        last_name,
+        nickname,
+        image_url,
+        committee,
+        is_exec,
+        github_handle,
+        linkedin_url,
+        instagram_url,
+        website_url
     `);
 
     if (error) throw new Error('team data fetching error');
 
-    const members: Member[] = data.map(person => {
-        const comm = committeeMap[person.committee]!;
-
+    const members = parse(array(Member), data).map(({
+        committee,
+        is_exec,
+        github_handle,
+        linkedin_url,
+        instagram_url,
+        website_url,
+        ...rest
+    }) => {
         // a quirk of the DB setup,
         // if the comm is set to Executive then thats the president,
         // otherwise if the person is_exec then they have two comms,
         // everone else has only one comm
-        const committees = [comm];
-        if (person.is_exec && comm !== 'Executive') committees.push('Executive');
+        const committees = [committee];
+        if (is_exec && committee !== 'Executive') committees.push('Executive');
 
         const socials: Record<string, string> = {};
 
-        if (person.github_handle) socials.github = person.github_handle;
-        if (person.linkedin_url) socials.linkedin = person.linkedin_url;
-        if (person.instagram_url) socials.instagram = person.instagram_url;
-        if (person.website_url) socials.website = person.website_url;
+        if (github_handle) socials.github = github_handle;
+        if (linkedin_url) socials.linkedin = linkedin_url;
+        if (instagram_url) socials.instagram = instagram_url;
+        if (website_url) socials.website = website_url;
 
-        const member: Member = {
-            name: `${person.nickname} ${person.last_name}`,
-            img: person.image_url,
-            committee: committees,
-            socials,
-            src: person.image_url,
+        return {
+            ...rest,
+            committees,
+            socials
         };
-
-        return member;
     });
 
-    return members.sort((a, b) => a.name.localeCompare(b.name));
+    // Sorts members by nickname (or last name if nickname is the same)
+    return members.sort((a, b) => a.nickname.localeCompare(b.nickname) || a.last_name.localeCompare(b.last_name));
 }
