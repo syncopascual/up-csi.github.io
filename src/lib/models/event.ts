@@ -11,6 +11,7 @@ export const TAGS = [
     'Partnership',
     'Workshop',
     'Other',
+    'Hackathon'
 ] as const;
 
 export const Event = object({
