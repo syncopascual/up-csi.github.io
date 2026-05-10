@@ -10,14 +10,16 @@ import { type EventSession, dummy_session } from '$lib/types/event_session';
 export async function getEvents() {
     const { data, error } = await supabase
         .from('events')
-        .select(`
+        .select(
+            `
             id, name, tag, description, img_url, slug,
             event_sessions (audience_type, start_time, end_time, session_desc)
-        `)
+        `,
+        )
         .order('id');
-    
+
     if (error) throw new Error('events data fetching error');
-    
+
     const events: Event[] = [];
     for (const eventData of data ?? []) {
         const event = parse(EventSchema, eventData);
@@ -28,8 +30,8 @@ export async function getEvents() {
             type: s.audience_type as 'Internal' | 'External',
             start: new Date(s.start_time),
             end: new Date(s.end_time),
-            description: s.session_desc ?? null
-        }))
+            description: s.session_desc ?? null,
+        }));
 
         parsed_sessions.sort((a, b) => b.end.getTime() - a.end.getTime());
 
@@ -53,9 +55,8 @@ export async function getEvents() {
         if (state === 'Past')
             current_session = parsed_sessions[parsed_sessions.length - 1] ?? dummy_session;
 
-        
         events.push({ ...event, parsed_sessions, current_session, state } as Event);
     }
-    
+
     return events;
 }

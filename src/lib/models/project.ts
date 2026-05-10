@@ -24,3 +24,5 @@ export const Project = object({
     slug: string(),
     imgs: nullable(array(string())),
 });
+
+export type Project = InferOutput<typeof Project>;

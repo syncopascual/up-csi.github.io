@@ -11,7 +11,7 @@ export async function getProjects() {
     `);
 
     if (error) throw new Error('project data fetching error');
-    
+
     const projects = parse(array(ProjectSchema), data);
 
     return projects;

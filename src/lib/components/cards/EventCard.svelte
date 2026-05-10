@@ -1,8 +1,8 @@
 <script lang="ts">
     import type { Event } from '$lib/models/event';
-    
+
     import placeholder from '$lib/assets/lino/lino-sablay.svg';
-    
+
     interface Props {
         event: Event;
     }
