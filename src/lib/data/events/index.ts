@@ -8,43 +8,27 @@ import { supabase } from '$lib/supabaseClient';
 import { type EventSession, dummy_session } from '$lib/types/event_session';
 
 export async function getEvents() {
-    const { data: eventsData, error: eventsError } = await supabase
+    const { data, error } = await supabase
         .from('events')
-        .select('id, name, tag, description, slug')
+        .select(`
+            id, name, tag, description, slug,
+            event_sessions (audience_type, start_time, end_time, session_desc)
+        `)
         .order('id');
     
-    if (eventsError) throw new Error('events data fetching error');
-
-    const { data: sessionsData, error: sessionsError } = await supabase
-        .from('event_sessions')
-        .select('event_id, audience_type, start_time, end_time, session_desc')
-
-    if (sessionsError) throw new Error('event_sessions data fetching error');
+    if (error) throw new Error('events data fetching error');
 
     const sessionsByEventId: Record<
         number,
         { audience_type: string; start_time: string; end_time: string; session_desc: string | null }[]
     > = {};
 
-    // checking jic sessionsData is null
-    for (const s of sessionsData ?? []) {
-        const event_id = s.event_id;
-        
-        // init the value for records
-        if (!sessionsByEventId[event_id]) sessionsByEventId[event_id] = [];
-        sessionsByEventId[event_id]!.push({
-            audience_type: s.audience_type,
-            start_time: s.start_time,
-            end_time: s.end_time,
-            session_desc: s.session_desc
-        })
-    }
-
+    
     const events: Event[] = [];
-    for (const eventData of eventsData ?? []) {
+    for (const eventData of data ?? []) {
         const event = parse(EventSchema, eventData);
 
-        const currEventSessions = sessionsByEventId[eventData.id] ?? [];
+        const currEventSessions = eventData.event_sessions ?? [];
 
         const parsed_sessions: EventSession[] = currEventSessions.map(s => ({
             type: s.audience_type as 'Internal' | 'External',
