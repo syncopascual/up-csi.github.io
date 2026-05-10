@@ -1,4 +1,4 @@
-import { type InferOutput, array, object, picklist, string } from 'valibot';
+import { type InferOutput, object, picklist, string } from 'valibot';
 
 import type { EventSession } from '$lib/types/event_session';
 import type { State } from '$lib/types/state';
@@ -17,7 +17,6 @@ export const Event = object({
     tag: picklist(TAGS),
     name: string(),
     description: string(),
-    sessions: array(string()),
     slug: string(),
 });
 
