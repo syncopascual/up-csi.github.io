@@ -11,18 +11,12 @@ export async function getEvents() {
     const { data, error } = await supabase
         .from('events')
         .select(`
-            id, name, tag, description, slug,
+            id, name, tag, description, img_url, slug,
             event_sessions (audience_type, start_time, end_time, session_desc)
         `)
         .order('id');
     
     if (error) throw new Error('events data fetching error');
-
-    const sessionsByEventId: Record<
-        number,
-        { audience_type: string; start_time: string; end_time: string; session_desc: string | null }[]
-    > = {};
-
     
     const events: Event[] = [];
     for (const eventData of data ?? []) {
